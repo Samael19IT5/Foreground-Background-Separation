@@ -11,13 +11,13 @@ import torchvision.transforms as T
 def decode_segmap(image, source, nc=21):
     label_colors = np.array([(0, 0, 0),  # 0=background
                              # 1=aeroplane, 2=bicycle, 3=bird, 4=boat, 5=bottle
-                             (128, 0, 0), (0, 128, 0), (128, 128, 0), (0, 0, 128), (128, 0, 128),
+                             (46, 69, 58), (4, 68, 191), (107, 71, 45), (195, 210, 110), (244, 84, 24),
                              # 6=bus, 7=car, 8=cat, 9=chair, 10=cow
-                             (0, 128, 128), (128, 128, 128), (64, 0, 0), (192, 0, 0), (64, 128, 0),
+                             (219, 54, 207), (128, 128, 128), (202, 12, 248), (218, 251, 200), (157, 125, 126),
                              # 11=dining table, 12=dog, 13=horse, 14=motorbike, 15=person
-                             (192, 128, 0), (64, 0, 128), (192, 0, 128), (64, 128, 128), (192, 128, 128),
+                             (122, 245, 185), (62, 40, 170), (86, 128, 236), (64, 128, 128), (192, 128, 128),
                              # 16=potted plant, 17=sheep, 18=sofa, 19=train, 20=tv/monitor
-                             (0, 64, 0), (128, 64, 0), (0, 192, 0), (128, 192, 0), (0, 64, 128)])
+                             (142, 113, 57), (252, 96, 6), (125, 43, 201), (231, 93, 180), (160, 244, 250)])
 
     r = np.zeros_like(image).astype(np.uint8)
     g = np.zeros_like(image).astype(np.uint8)
@@ -74,21 +74,17 @@ def decode_segmap(image, source, nc=21):
 def segment(net, path, dev='cuda'):
     img = Image.open(path)
 
-    # Comment the Resize and CenterCrop for better inference results
-    trf = T.Compose([T.Resize(450),
-                     # T.CenterCrop(224),
-                     T.ToTensor(),
+    trf = T.Compose([T.ToTensor(),
                      T.Normalize(mean=[0.485, 0.456, 0.406],
                                  std=[0.229, 0.224, 0.225])])
     inp = trf(img).unsqueeze(0).to(dev)
     out = net.to(dev)(inp)['out']
     om = torch.argmax(out.squeeze(), dim=0).detach().cpu().numpy()
-
     rgb = decode_segmap(om, path)
 
     return rgb
 
 
 def bgGrayscale(image):
-    dlab = models.segmentation.deeplabv3_resnet101(pretrained=1).eval()
+    dlab = models.segmentation.deeplabv3_resnet101(pretrained=True).eval()
     return segment(dlab, image)
